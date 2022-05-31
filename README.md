@@ -61,3 +61,39 @@ The idea of batching is to divide the data sequence into several parts, for exam
 ![Screenshot 2022-05-31 194259](https://user-images.githubusercontent.com/86812576/171175971-4221e2f1-8d78-40b4-bd45-2b9cb6e1df6b.png)
 
 I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2930/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
+
+# Architecture and Config
+
+![Screenshot 2022-05-31 204111](https://user-images.githubusercontent.com/86812576/171187702-f6517c4f-1dcf-4046-9336-a6ce1fcb7390.png)
+
+PyTorch has prepared an RNN architecture, namely the RNN Block. The parameters requested include "input_size", "hidden_layer", "num_layers", "dropout", and "batch_first"
+
+### Config
+
+Contains the parameters you want to keep when the model is reloaded. In this case I will save the "output_size", "input_size", "seq_len", "hidden_size", "num_layers", "dropout". 
+
+# Training Preparation 
+### MCOC (Model, Criterion, Optimizer, Callback)
+![Screenshot 2022-05-31 204747](https://user-images.githubusercontent.com/86812576/171189043-4d45a63d-70bb-4b05-84f6-8c3c42fb04ce.png)
+
+On the criterion using MSE Loss (Mean Square Error) for regression. But in RNN, the loss should be a number that you want to backprop, while in RNN the loss is more than one, because every output after the hidden size has a loss, then all losses must be combined. In this case I use reduction = "mean", meaning all losses will be averaged.
+
+# Training and Result
+![Screenshot 2022-05-31 210420](https://user-images.githubusercontent.com/86812576/171192589-97907b7d-a4f0-4551-a1a1-179b329c21b4.png)
+
+You can see the results are not too overfit.
+
+# Sanity Check
+### Data for Pred
+![image](https://user-images.githubusercontent.com/86812576/171196074-d9e098bc-1ce8-42b4-b15f-2b0a24180beb.png)
+
+The results on test data that really never saw the future from 1989 to 1991.
+Notice that in training it catches a trend of no more than 17 degrees, so we look at the test data if it's more than 17 degrees then the RNN seems to be stuck at 17, because if it's more than 17 then it's considered noise.
+
+### Pred for Pred
+If we want to be realistic when we meet data that has never been seen, and we use predictions for predictions, the reality will be like this.
+
+![image](https://user-images.githubusercontent.com/86812576/171197762-2df535b9-f3c3-486e-a34f-68f816423161.png)
+
+The result looks bad, because of the domino effect. The longer the farther, the worse the prediction. So usually only one or two data is reliable in the future. Basically we can't predict the future, unless there are features that make sense. Therefore, our prediction looks bad because it does not find the pattern of the features.
+
