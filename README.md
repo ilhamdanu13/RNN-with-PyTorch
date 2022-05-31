@@ -57,3 +57,7 @@ At this stage, how to convert the split data to NSF format? Why should I change 
 1 row, 2930 columns, but it has only one feature which is "Temp". So you have to be careful, the column is not a feature but 2930 sequences with 1 data. Whereas machine learning cannot learn with one data. So that in the RNN the data must be batched, because the time series data is only one.
 
 The idea of batching is to divide the data sequence into several parts, for example, it is divided every 10 sequences. So that after batching, the form of the data is divided so that the data is not only one data.
+
+![Screenshot 2022-05-31 194259](https://user-images.githubusercontent.com/86812576/171175971-4221e2f1-8d78-40b4-bd45-2b9cb6e1df6b.png)
+
+I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2930/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
