@@ -40,8 +40,11 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 The data used is the daily minimum temperature.
 Because our data has not been split, we need to split it manually with scikit-learn. the index column is "Date", and don't forget to parse_dates because it's important to take the time in weeks, days, hours, or minutes.
 
-# Plot dataset
+# Added Features
+Previously I've tried this model with a regular RNN with only one "Temp" feature, and the results weren't great.
+If you look at the feature itself in the past it lacks meaning. So I tried to add more meaningful features. I will try to input the moon, because in certain months the temperature on earth is low. Extract "Date" to datetime and take it quarterly, dividing the year into 4 seasons. This means that it will add 4 new features so that the total becomes 5 features.
 
+# Plot Data
 ![image](https://user-images.githubusercontent.com/86812576/171154314-ec8ca758-cb59-4766-a7b8-641c7c99fdd3.png)
 
 We can see interesting things, at the beginning of each year the temperature looks warmer, while at the end of the year the temperature is colder.
@@ -56,37 +59,34 @@ In time series data, there is a difference in splitting the data. The first thin
 The way to do it in time series is not to use X and y, but what is split is the original data.
 
 # Dataset & Dataloader
-At this stage, how to convert the split data to NSF format? Why should I change to NSF? because RNN only accepts in the form of NSF. The interesting thing is that the data structure of the RNN is described (as shown below).
+At this stage, how to convert the split data to NSF format? Why should I change to NSF? because RNN only accepts in the form of NSF. 
 
-![Screenshot 2022-05-31 182338](https://user-images.githubusercontent.com/86812576/171162431-6c3b926a-4d1a-45f7-bd5c-14eb75fcfe10.png)
-
-
-1 row, 2930 columns, but it has only one feature which is "Temp". So you have to be careful, the column is not a feature but 2930 sequences with 1 data. Whereas machine learning cannot learn with one data. So that in the RNN the data must be batched, because the time series data is only one.
+1 row, 2920 columns, but it has only one feature which is "Temp". So you have to be careful, the column is not a feature but 2920 sequences with 1 data. Whereas machine learning cannot learn with one data. So that in the RNN the data must be batched, because the time series data is only one.
 
 The idea of batching is to divide the data sequence into several parts, for example, it is divided every 10 sequences. So that after batching, the form of the data is divided so that the data is not only one data.
 
 ![Screenshot 2022-05-31 194259](https://user-images.githubusercontent.com/86812576/171175971-4221e2f1-8d78-40b4-bd45-2b9cb6e1df6b.png)
 
-I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2930/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
+I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2920/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
 
 # Architecture and Config
 
-![Screenshot 2022-05-31 204111](https://user-images.githubusercontent.com/86812576/171187702-f6517c4f-1dcf-4046-9336-a6ce1fcb7390.png)
+![Screenshot 2022-06-01 174708](https://user-images.githubusercontent.com/86812576/171387484-5336c31b-73a7-4068-a921-b7762758eb03.png)
 
-PyTorch has prepared an RNN architecture, namely the RNN Block. The parameters requested include "input_size", "hidden_layer", "num_layers", "dropout", and "batch_first"
+The RNN architecture I'm using is the GRU (Gated Recurrent Unit) architecture. The parameters requested include "input_size", "hidden_layer", "num_layers", "dropout", and "batch_first"
 
 ### Config
 
-Contains the parameters you want to keep when the model is reloaded. In this case I will save the "output_size", "input_size", "seq_len", "hidden_size", "num_layers", "dropout". 
+Contains the parameters you want to keep when the model is reloaded. In this case I will save the "output_size", "input_size", "seq_len", "hidden_size", "num_layers", "dropout" which will be tuning later.
 
 # Training Preparation 
 ### MCOC (Model, Criterion, Optimizer, Callback)
-![Screenshot 2022-05-31 204747](https://user-images.githubusercontent.com/86812576/171189043-4d45a63d-70bb-4b05-84f6-8c3c42fb04ce.png)
+![mc](https://user-images.githubusercontent.com/86812576/171389937-76c8fddf-16e2-48dd-a54d-89d2316a1a96.png)
 
 On the criterion using MSE Loss (Mean Square Error) for regression. But in RNN, the loss should be a number that you want to backprop, while in RNN the loss is more than one, because every output after the hidden size has a loss, then all losses must be combined. In this case I use reduction = "mean", meaning all losses will be averaged.
 
 # Training and Result
-![Screenshot 2022-05-31 210420](https://user-images.githubusercontent.com/86812576/171192589-97907b7d-a4f0-4551-a1a1-179b329c21b4.png)
+![scr](https://user-images.githubusercontent.com/86812576/171390003-9cd34d34-6cb2-4d1b-81dc-c585f4a565e2.png)
 
 You can see the results are not too overfit.
 
@@ -100,7 +100,7 @@ Notice that in training it catches a trend of no more than 17 degrees, so we loo
 ### Pred for Pred
 If we want to be realistic when we meet data that has never been seen, and we use predictions for predictions, the reality will be like this.
 
-![image](https://user-images.githubusercontent.com/86812576/171197762-2df535b9-f3c3-486e-a34f-68f816423161.png)
+![image](https://user-images.githubusercontent.com/86812576/171390579-0da0c062-606c-4af5-bf36-07709e3c5ee5.png)
 
 The result looks bad, because of the domino effect. The longer the farther, the worse the prediction. So usually only one or two data is reliable in the future. Basically we can't predict the future, unless there are features that make sense. Therefore, our prediction looks bad because it does not find the pattern of the features.
 
