@@ -61,7 +61,7 @@ The way to do it in time series is not to use X and y, but what is split is the 
 # Dataset & Dataloader
 At this stage, how to convert the split data to NSF format? Why should I change to NSF? because RNN only accepts in the form of NSF. 
 
-1 row, 2920 columns, but it has only one feature which is "Temp". So you have to be careful, the column is not a feature but 2920 sequences with 1 data. Whereas machine learning cannot learn with one data. So that in the RNN the data must be batched, because the time series data is only one.
+1 row, 2920 columns, but it has five features which is "Temp", and "quarters". So you have to be careful, the column is not a feature but 2920 sequences with 1 data. Whereas machine learning cannot learn with one data. So that in the RNN the data must be batched, because the time series data is only one.
 
 The idea of batching is to divide the data sequence into several parts, for example, it is divided every 10 sequences. So that after batching, the form of the data is divided so that the data is not only one data.
 
@@ -69,13 +69,13 @@ The idea of batching is to divide the data sequence into several parts, for exam
 
 I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2920/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
 
-# Architecture and Config
+# Architecture
 
 ![Screenshot 2022-06-01 174708](https://user-images.githubusercontent.com/86812576/171387484-5336c31b-73a7-4068-a921-b7762758eb03.png)
 
 The RNN architecture I'm using is the GRU (Gated Recurrent Unit) architecture. The parameters requested include "input_size", "hidden_layer", "num_layers", "dropout", and "batch_first"
 
-### Config
+# Config
 
 Contains the parameters you want to keep when the model is reloaded. In this case I will save the "output_size", "input_size", "seq_len", "hidden_size", "num_layers", "dropout" which will be tuning later.
 
@@ -102,5 +102,4 @@ If we want to be realistic when we meet data that has never been seen, and we us
 
 ![image](https://user-images.githubusercontent.com/86812576/171390579-0da0c062-606c-4af5-bf36-07709e3c5ee5.png)
 
-The result looks bad, because of the domino effect. The longer the farther, the worse the prediction. So usually only one or two data is reliable in the future. Basically we can't predict the future, unless there are features that make sense. Therefore, our prediction looks bad because it does not find the pattern of the features.
-
+The results can be seen as quite good, in certain months (other quarters) it decreases, then rises again. this is because he added a new feature called "quarters", so he finally got the information that in certain months the temperature goes up, certain months the temperature goes down. This is what should be done, which is to provide the appropriate.
