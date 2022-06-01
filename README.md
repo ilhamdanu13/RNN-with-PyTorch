@@ -69,7 +69,7 @@ The idea of batching is to divide the data sequence into several parts, for exam
 
 I divide the data per 14 sequences with a batch size of 32. As a result, some data will be discarded to meet the number of 2920/14 = 208.57. So a total of 7 data were discarded in the train data, and 1 data was discarded in the test data.
 
-# Architecture
+# Architecture using GRU
 
 ![Screenshot 2022-06-01 174708](https://user-images.githubusercontent.com/86812576/171387484-5336c31b-73a7-4068-a921-b7762758eb03.png)
 
